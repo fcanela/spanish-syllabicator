@@ -96,5 +96,12 @@ describe Syllabicator, '#syllabicate' do
                 # It may need be more tested
                 @s.syllabicate("atlas").should eq(["at","las"])
         end
+
+        it "splits prefixed words" do
+                @s.syllabicate("reincidir").should eq(["re","in","ci","dir"])
+                @s.syllabicate("coincidir").should eq(["co","in","ci","dir"])
+                @s.syllabicate("diagonal").should eq(["di","a","go","nal"])
+                @s.syllabicate("autoinmune").should eq(["au","to","in","mu","ne"])
+        end
 end
 

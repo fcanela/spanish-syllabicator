@@ -8,6 +8,43 @@ class Syllabicator
         UNSPLITTABLE_R = ['p','b','f','t','d','g','c', 'r']
         UNSPLITTABLE_L = ['p','b','f','d','g','c','l']
 
+        PREFIXES = [
+                # A
+                'acro', 'aero', 'agro', 'alo', 'andro',
+                'anfi', 'ante', 'anti', 'antro', 'apo', 'archi',
+                'auto',
+                # B
+                'bi', 'bio',
+                # C
+                'cardi', 'cata', 'ciclo', 'co', 'cuadri',
+                # D
+                'deci', 'demo', 'derma', 'di',
+                # E
+                'ecto', 'emi', 'endo', 'epi', 'etimo', 'etno',
+                'eu', 'exo',
+                # G
+                'geo',
+                # H
+                'hecto', 'hemi', 'hetero', 'hidro', 'hipo', 'homo',
+                # I
+                'icono', 'idio', 'infra', 'intra', 'iso',
+                # K/L
+                'kilo', 'logo',
+                # M
+                'macro', 'mega', 'meta', 'micro', 'mio', 'mono',
+                'morfo', 'multi',
+                # N
+                'nau', 'necro', 'neo', 'neuro',
+                # O
+                'octa', 'octo', 'omni',
+                # P
+                'pali', 'paqui', 'poli', 'pre', 'pro', 'proto',
+                'psico',
+                # Q/R/S
+                'quiro', 're', 'retro', 'supra',
+                # U/V/Y
+                'ultra', 'vice', 'uxta'
+        ]
 
         def handle_strong_vowels(word,pos)
                 new_syllabe = ""
@@ -142,6 +179,31 @@ class Syllabicator
                 return syllabes
         end
 
+        def preprocess_prefix(word)
+                if word.length < 2
+                        return [], word
+                end
+
+                PREFIXES.each do |prefix|
+                        if word.start_with? prefix
+                                # Check if the word without prefix
+                                # starts with vowel
+                                word_pos = prefix.length
+                                if VOWELS.include? word[word_pos]
+                                        # Only if it starts with a vowel we
+                                        # have to care about
+                                        prefix_syllabes = process(prefix)
+                                        word = word.slice (prefix.length..-1)
+                                        return prefix_syllabes, word
+                                end
+                        end
+                end
+
+                # Word is not prefixed or it's 
+                # unknown
+                return [], word
+        end
+
         def syllabicate(word)
                 word = word.downcase
 
@@ -149,6 +211,12 @@ class Syllabicator
                         return []
                 end
 
-                return process(word)
+                prefix_syllabes,word = preprocess_prefix(word)
+
+                word_syllabes = process(word)
+
+                syllabes = prefix_syllabes.concat word_syllabes
+
+                return syllabes 
         end
 end
