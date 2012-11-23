@@ -1,8 +1,12 @@
 #!/usr/bin/ruby
+# encoding: utf-8
 
 class Syllabicator
         VOWELS=['a', 'e', 'i', 'o', 'u']
         STRONG_VOWELS=['a', 'e', 'o']
+
+        UNSPLITTABLE_R = ['p','b','f','t','d','g','c', 'r']
+        UNSPLITTABLE_L = ['p','b','f','d','g','c','l']
 
 
         def handle_strong_vowels(word,pos)
@@ -15,6 +19,13 @@ class Syllabicator
                                 remainder = word[pos+1..-1]
                         end
                 end
+
+                return new_syllabe, remainder
+        end
+
+        def split_last_two_consonants(word, next_vowel_pos) 
+                new_syllabe = word[0..next_vowel_pos-3]
+                remainder = word[next_vowel_pos-2..-1]
 
                 return new_syllabe, remainder
         end
@@ -52,6 +63,38 @@ class Syllabicator
                         return new_syllabe, remainder
                 end
 
+                last_consonant = word[next_vowel_pos-1]
+                previous_consonant = word[next_vowel_pos-2] 
+
+                if last_consonant == 'r' 
+                        # Some intervocalic consonant can't be splitted
+                        # when Xr group found. The last two are part of
+                        # the remaining group
+                        # Example: Control -> [Con,trol]
+                        if UNSPLITTABLE_R.include? previous_consonant
+                             return split_last_two_consonants(word, next_vowel_pos)                    
+                        end
+                end
+
+                if last_consonant == 'l'
+                        # Some intervocalic consonant can't be splitted
+                        # when Xl group found. The last two are part of
+                        # the remaining group
+                        # Example: Ciclo -> [Ci,clo]
+                        if UNSPLITTABLE_L.include? previous_consonant
+                             return split_last_two_consonants(word, next_vowel_pos)                    
+                        end
+                end
+
+                if last_consonant == 'h' and previous_consonant == 'c'
+                        # "ch" group is never split.
+                        # Example: Bicho -> [Bi,cho]
+                        return split_last_two_consonants(word, next_vowel_pos)                    
+                end
+
+                # No special case, the last consonant between both vowels
+                # can be splitted
+                # Example: Honra -> [Hon,ra]
                 new_syllabe = word[0..next_vowel_pos-2]
                 remainder = word[next_vowel_pos-1..-1]
 

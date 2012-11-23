@@ -41,7 +41,6 @@ describe Syllabicator, '#syllabicate' do
         end
 
         it "splits two intervocalic consonants with Xr" do
-                pending "to implement"
                 @s.syllabicate("libra").should eq(["li","bra"])
                 @s.syllabicate("cofre").should eq(["co","fre"])
                 @s.syllabicate("letra").should eq(["le","tra"])
@@ -49,4 +48,53 @@ describe Syllabicator, '#syllabicate' do
                 @s.syllabicate("granero").should eq(["gra","ne","ro"])
                 @s.syllabicate("trigal").should eq(["tri","gal"])
         end
+
+        it "splits three intervocalic consonants with Xr" do
+                @s.syllabicate("astro").should eq(["as","tro"])
+                @s.syllabicate("astros").should eq(["as","tros"])
+                @s.syllabicate("mambru").should eq(["mam","bru"])
+        end
+
+        it "splits four intervocalic consonants with Xr" do
+                @s.syllabicate("monstruo").should eq(["mons","truo"])
+                @s.syllabicate("abstracto").should eq(["abs","trac","to"])
+        end
+
+        it "splits two intervocalic consonants with Xl" do
+                @s.syllabicate("copla").should eq(["co","pla"])
+                @s.syllabicate("bucle").should eq(["bu","cle"])
+                @s.syllabicate("sigla").should eq(["si","gla"])
+                @s.syllabicate("plomo").should eq(["plo","mo"])
+        end
+
+        it "splits three intervocalic consonants with Xl" do
+                @s.syllabicate("cumple").should eq(["cum","ple"])
+                @s.syllabicate("manglar").should eq(["man","glar"])
+                @s.syllabicate("explorar").should eq(["ex","plo","rar"])
+                @s.syllabicate("ciclo").should eq(["ci","clo"])
+        end
+
+        it "splits intervocalic rr" do
+                @s.syllabicate("corro").should eq(["co","rro"])
+                @s.syllabicate("arrebatar").should eq(["a","rre","ba","tar"])
+        end
+
+        it "splits intervocalic ll" do
+                @s.syllabicate("callado").should eq(["ca","lla","do"])
+                @s.syllabicate("llamada").should eq(["lla","ma","da"])
+                @s.syllabicate("botella").should eq(["bo","te","lla"])
+        end
+
+        it "splits intervocalic ch" do
+                @s.syllabicate("concha").should eq(["con","cha"])
+                @s.syllabicate("choco").should eq(["cho","co"])
+                @s.syllabicate("corcho").should eq(["cor","cho"])
+
+        end
+
+        it "splits intervocalic tl" do
+                # It may need be more tested
+                @s.syllabicate("atlas").should eq(["at","las"])
+        end
 end
+
