@@ -29,9 +29,6 @@ class Syllabicator
                         end
                 end
 
-                new_sillabe = ""
-                remainder = ""
-
                 if next_vowel_pos == pos
                         # If no more vowels, it's not a
                         # intervocalic consonant: It will not
@@ -54,6 +51,11 @@ class Syllabicator
 
                         return new_syllabe, remainder
                 end
+
+                new_syllabe = word[0..next_vowel_pos-2]
+                remainder = word[next_vowel_pos-1..-1]
+
+                return new_syllabe, remainder
         end
 
         def process(word)
