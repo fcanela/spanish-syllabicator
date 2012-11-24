@@ -1,9 +1,13 @@
 #!/usr/bin/ruby
 # encoding: utf-8
 
+# Downcase accents and ñ
+require 'unicode_utils/downcase'
+
 class Syllabicator
-        VOWELS=['a', 'e', 'i', 'o', 'u']
+        VOWELS=['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú', 'ü']
         STRONG_VOWELS=['a', 'e', 'o']
+        ACCUTED_WEAK_VOWEL = ['í', 'ú']
 
         UNSPLITTABLE_R = ['p','b','f','t','d','g','c', 'r']
         UNSPLITTABLE_L = ['p','b','f','d','g','c','l']
@@ -59,6 +63,37 @@ class Syllabicator
 
                 return new_syllabe, remainder
         end
+
+        def handle_breaking_hiatus(word,pos)
+                if ACCUTED_WEAK_VOWEL.include? word[pos]
+                        # When a weak vowel is accuted, it acts
+                        # like a strong one.
+                        if pos > 0 and STRONG_VOWELS.include? word[pos-1]
+                                # Strong vowel before.
+                                # Before should be managed first to
+                                # correctly syllabicate words with
+                                # vowel groups like "aía".
+                                # Example: Raúl -> [Ra,úl]
+                                new_syllabe = word[0..pos-1]
+                                remainder = word[pos..-1]
+                                p new_syllabe
+                                p remainder
+                                return new_syllabe, remainder
+                        end
+                        if STRONG_VOWELS.include? word[pos+1]
+                                # Strong vowel after.
+                                # Example: ríos -> [rí,os]
+                                new_syllabe = word[0..pos]
+                                remainder = word[pos+1..-1]
+                                return new_syllabe, remainder
+                        end
+                end
+
+                new_syllabe = ""
+                remainder = word
+                return new_syllabe, remainder
+        end
+
 
         def split_last_two_consonants(word, next_vowel_pos) 
                 new_syllabe = word[0..next_vowel_pos-3]
@@ -146,6 +181,10 @@ class Syllabicator
                 # Search for a splittable syllabe
                 (0..word.length-1).each do |pos|
                         if VOWELS.include? word[pos]
+                                # When a vowel is found, search for hiatus
+                                new_syllabe, remainder = handle_breaking_hiatus(word,pos) 
+                                break if new_syllabe != ""
+
                                 if VOWELS.include? word[pos+1]
                                         # If it's a vowel followed by a vowel...
 
@@ -205,7 +244,7 @@ class Syllabicator
         end
 
         def syllabicate(word)
-                word = word.downcase
+                word = UnicodeUtils.downcase word
 
                 if word==""
                         return []

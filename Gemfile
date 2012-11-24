@@ -1,5 +1,7 @@
 source 'http://rubygems.org'
 
+gem 'unicode_utils'
+
 group :development do
 	gem 'rspec'
 	gem 'guard-rspec'

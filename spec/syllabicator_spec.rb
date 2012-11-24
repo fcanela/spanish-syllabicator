@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'syllabicator'
 
 describe Syllabicator do
@@ -103,5 +104,14 @@ describe Syllabicator, '#syllabicate' do
                 @s.syllabicate("diagonal").should eq(["di","a","go","nal"])
                 @s.syllabicate("autoinmune").should eq(["au","to","in","mu","ne"])
         end
+
+        it "splits breaking hiatus" do
+                @s.syllabicate("amaría").should eq(["a","ma","rí","a"])
+                @s.syllabicate("librería").should eq(["li","bre","rí","a"])
+                @s.syllabicate("ríos").should eq(["rí","os"])
+                @s.syllabicate("raúl").should eq(["ra","úl"])
+                @s.syllabicate("caía").should eq(["ca","í","a"])
+        end
 end
+
 
