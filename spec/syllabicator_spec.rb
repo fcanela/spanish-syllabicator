@@ -112,6 +112,32 @@ describe Syllabicator, '#syllabicate' do
                 @s.syllabicate("raúl").should eq(["ra","úl"])
                 @s.syllabicate("caía").should eq(["ca","í","a"])
         end
+
+        it "splits anglicims ending in 'y'" do
+                @s.syllabicate("sexy").should eq(["se","xy"])
+                @s.syllabicate("rugby").should eq(["rug","by"])
+                @s.syllabicate("curry").should eq(["cu","rry"])
+                @s.syllabicate("panty").should eq(["pan","ty"])
+        end
+
+        it "splits random words" do
+                @s.syllabicate("semiautomático").should eq(["se","mi","au", \
+                        "to","má","ti","co"])
+                @s.syllabicate("cigüeña").should eq(["ci","güe","ña"])
+                @s.syllabicate("reía").should eq(["re","í","a"])
+                @s.syllabicate("ea").should eq(["e","a"])
+                @s.syllabicate("ña").should eq(["ña"])
+                @s.syllabicate("ahí").should eq(["a","hí"])
+                @s.syllabicate("bis").should eq(["bis"])
+                @s.syllabicate("retroalimentar").should eq(["re","tro","a",\
+                        "li","men","tar"])
+                @s.syllabicate("construcción").should eq(["cons","truc","ción"])
+                @s.syllabicate("luisa").should eq(["lui","sa"])
+                @s.syllabicate("licuéis").should eq(["li", "cuéis"])
+                @s.syllabicate("caray").should eq(["ca","ray"])
+                @s.syllabicate("rey").should eq(["rey"])
+                @s.syllabicate("y").should eq(["y"])
+        end
 end
 
 

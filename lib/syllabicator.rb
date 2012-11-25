@@ -8,6 +8,7 @@ class Syllabicator
         VOWELS=['a', 'e', 'i', 'o', 'u', 'á', 'é', 'í', 'ó', 'ú', 'ü']
         STRONG_VOWELS=['a', 'e', 'o']
         ACCUTED_WEAK_VOWEL = ['í', 'ú']
+        ANGLICISMS_VOWELS = VOWELS.dup.concat ['y']
 
         UNSPLITTABLE_R = ['p','b','f','t','d','g','c', 'r']
         UNSPLITTABLE_L = ['p','b','f','d','g','c','l']
@@ -45,7 +46,7 @@ class Syllabicator
                 'pali', 'paqui', 'poli', 'pre', 'pro', 'proto',
                 'psico',
                 # Q/R/S
-                'quiro', 're', 'retro', 'supra',
+                'quiro', 're', 'retro', 'semi', 'supra',
                 # U/V/Y
                 'ultra', 'vice', 'uxta'
         ]
@@ -76,8 +77,6 @@ class Syllabicator
                                 # Example: Raúl -> [Ra,úl]
                                 new_syllabe = word[0..pos-1]
                                 remainder = word[pos..-1]
-                                p new_syllabe
-                                p remainder
                                 return new_syllabe, remainder
                         end
                         if STRONG_VOWELS.include? word[pos+1]
@@ -96,19 +95,30 @@ class Syllabicator
 
 
         def split_last_two_consonants(word, next_vowel_pos) 
+                # If V is a vowel and C is a consonant, being
+                # next_vowel_pos the position of the second
+                # vowel:
+                # VCCCV -> [VC,CCV]
                 new_syllabe = word[0..next_vowel_pos-3]
                 remainder = word[next_vowel_pos-2..-1]
 
                 return new_syllabe, remainder
         end
 
-        def handle_intervocalic_consonants(word,pos)
+        def handle_intervocalic_consonants(word,pos, is_anglicism=false)
                 # Search the next vowel
                 next_vowel_pos = pos
                 (pos+1..word.length-1).each do |next_pos|
-                        if VOWELS.include? word[next_pos] 
-                                next_vowel_pos = next_pos
-                                break
+                        if not is_anglicism
+                                if VOWELS.include? word[next_pos] 
+                                        next_vowel_pos = next_pos
+                                        break
+                                end
+                        else
+                                if ANGLICISMS_VOWELS.include? word[next_pos] 
+                                        next_vowel_pos = next_pos
+                                        break
+                                end
                         end
                 end
 
@@ -173,6 +183,32 @@ class Syllabicator
                 return new_syllabe, remainder
         end
 
+        def handle_anglicism(last_syllabe)
+                syllabes = []
+                new_syllabe = ""
+                remainder = ""
+
+                # Search for a splittable syllabe
+                (0..last_syllabe.length-1).each do |pos|
+                        if ANGLICISMS_VOWELS.include? last_syllabe[pos]
+                                if not ANGLICISMS_VOWELS.include? last_syllabe[pos+1]
+                                        # If it's a vowel followed by a consonant...
+                                        # Search for intervocalic consonants
+                                        new_syllabe, remainder = handle_intervocalic_consonants(last_syllabe,\
+                                                pos,is_anglicism=true)
+                                        break if new_syllabe != ""
+                                end
+                        end
+                end
+
+                # If this is the last syllabe found
+                # Add the part as syllabe
+                syllabes << new_syllabe
+                syllabes << remainder if remainder != ""
+
+                return syllabes
+        end
+
         def process(word)
                 syllabes = []
                 new_syllabe = ""
@@ -210,9 +246,33 @@ class Syllabicator
                                 syllabes.concat process(remainder)
                         end
                 else
-                        # If this is the last syllabe found
+                        # If this is the last syllabe found...
                         # Add the part as syllabe
                         syllabes << word
+                end
+
+                if remainder == ""
+                        # Some anglicism ends with "y" and are not
+                        # correctly parsed. Words like "sexy" or
+                        # "ferry"·
+                        last_syllabe = syllabes.last
+                        if last_syllabe[-1] == "y"
+                                # When the last syllabe ends in "y"
+                                if not ANGLICISMS_VOWELS.include? last_syllabe[-2]
+                                        # And the previous character is a consonant
+                                        # (Done with ANGLICISMS_VOWELS to correctly
+                                        # parse "y" word)
+                                        
+                                        # Remove the last syllabe from the current
+                                        # syllabes list
+                                        syllabes.pop
+                                        # Get the correct syllabication
+                                        new_syllabes = handle_anglicism(last_syllabe)
+                                        # Append it
+                                        syllabes.concat new_syllabes
+                                end
+                        end
+
                 end
 
                 return syllabes
@@ -232,7 +292,7 @@ class Syllabicator
                                         # Only if it starts with a vowel we
                                         # have to care about
                                         prefix_syllabes = process(prefix)
-                                        word = word.slice (prefix.length..-1)
+                                        word = word.dup.slice (prefix.length..-1)
                                         return prefix_syllabes, word
                                 end
                         end
@@ -251,9 +311,7 @@ class Syllabicator
                 end
 
                 prefix_syllabes,word = preprocess_prefix(word)
-
                 word_syllabes = process(word)
-
                 syllabes = prefix_syllabes.concat word_syllabes
 
                 return syllabes 
